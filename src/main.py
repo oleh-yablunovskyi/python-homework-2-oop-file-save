@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import csv
 import xml.etree.ElementTree as ET
 from abc import ABC, abstractmethod
 from pathlib import Path
@@ -239,9 +240,45 @@ class XmlSaver(DataSaver):
         return out_path
 
 
+class CsvSaver(DataSaver):
+    def save(self, data: Dict[str, Any], student: Student, work_code: str) -> Path:
+        path = self.build_filename(student, work_code, "csv")
+
+        headers = [
+            "full_name",
+            "group_number",
+            "birth_date",
+            "address",
+            "actual_subjects",
+            "actual_scores",
+            "actual_average",
+            "desired_scores",
+            "desired_average",
+        ]
+
+        row = [
+            data["student"]["full_name"],
+            data["student"]["group_number"],
+            data["student"]["birth_date"],
+            data["student"]["address"],
+            ";".join(map(str, data["actual_performance"]["subjects"])),
+            ";".join(map(str, data["actual_performance"]["scores"])),
+            data["actual_performance"]["average_score"],
+            ";".join(map(str, data["desired_performance"]["desired_scores"])),
+            data["desired_performance"]["desired_average_score"],
+        ]
+
+        with path.open("w", encoding="utf-8", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(headers)
+            writer.writerow(row)
+
+        return path
+
+
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Save student data to JSON or XML.")
-    parser.add_argument("--format", choices=["json", "xml"], default="json", help="output format")
+    parser = argparse.ArgumentParser(description="Save student data to JSON, XML, or CSV.")
+    parser.add_argument("--format", choices=["json", "xml", "csv"], default="json", help="output format")
     parser.add_argument("--work-code", default="PR5", help="work code used in filename, e.g., PR5")
     args = parser.parse_args()
 
@@ -262,8 +299,10 @@ def main() -> None:
     saver: DataSaver
     if args.format == "json":
         saver = JsonSaver()
-    else:
+    elif args.format == "xml":
         saver = XmlSaver()
+    else:
+        saver = CsvSaver()
 
     output = saver.save(data, student, args.work_code)
     print(f"Saved to {output.resolve()}")
