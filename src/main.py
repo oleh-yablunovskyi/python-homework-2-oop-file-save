@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import argparse
+import json
 from abc import ABC, abstractmethod
 from pathlib import Path
 from statistics import mean
@@ -186,6 +188,14 @@ class DataSaver(ABC):
         # Example: Ivanov_IPD11_PR5.XML
         base = f"{student.full_name.replace(' ', '')}_{student.group_number}_{work_code}"
         return Path(f"{base}.{ext}")
+
+
+class JsonSaver(DataSaver):
+    def save(self, data: Dict[str, Any], student: Student, work_code: str) -> Path:
+        path = self.build_filename(student, work_code, "json")
+        with path.open("w", encoding="utf-8") as file:
+            json.dump(data, file, ensure_ascii=False, indent=2)
+        return path
 
 
 def main() -> None:
