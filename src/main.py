@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from statistics import mean
 from typing import List
 
 
@@ -88,6 +89,23 @@ class Performance(ABC):
     @abstractmethod
     def average_score(self) -> float:
         ...
+
+
+class ActualPerformance(Performance):
+    def __init__(self, subjects: List[str], scores: List[float]) -> None:
+        super().__init__(subjects, scores)
+        self.__validate_alignment()
+
+    def __validate_alignment(self) -> None:
+        if len(self.subjects) != len(self.scores):
+            raise ValueError("subjects and scores must have the same length")
+        for s in self.scores:
+            if s < 0 or s > 100:
+                raise ValueError("each score must be in range 0..100")
+
+    def average_score(self) -> float:
+        return float(mean(self.scores)) if self.scores else 0.0
+
 
 def main() -> None:
     # Will be implemented later
