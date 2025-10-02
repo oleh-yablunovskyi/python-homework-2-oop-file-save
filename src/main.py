@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from pathlib import Path
 from statistics import mean
 from typing import Any, Dict, List, Optional
 
@@ -173,6 +174,18 @@ class StudentData:
                 "desired_average_score": round(self.desired.average_score(), 2),
             },
         }
+
+
+class DataSaver(ABC):
+    @abstractmethod
+    def save(self, data: Dict[str, Any], student: Student, work_code: str) -> Path:
+        ...
+
+    @staticmethod
+    def build_filename(student: Student, work_code: str, ext: str) -> Path:
+        # Example: Ivanov_IPD11_PR5.XML
+        base = f"{student.full_name.replace(' ', '')}_{student.group_number}_{work_code}"
+        return Path(f"{base}.{ext}")
 
 
 def main() -> None:
