@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
+from typing import List
+
 
 class Student:
     def __init__(self, full_name: str, group_number: str, birth_date: str = "", address: str = "") -> None:
@@ -55,6 +58,36 @@ class Student:
         if not isinstance(value, str):
             raise ValueError("address must be a string")
         self.__address = value.strip()
+
+
+class Performance(ABC):
+    def __init__(self, subjects: List[str], scores: List[float]) -> None:
+        self.subjects = subjects
+        self.scores = scores
+
+    @property
+    def subjects(self) -> List[str]:
+        return list(self.__subjects)
+
+    @subjects.setter
+    def subjects(self, value: List[str]) -> None:
+        if not isinstance(value, list) or not all(isinstance(x, str) and x.strip() for x in value):
+            raise ValueError("subjects must be a list of non-empty strings")
+        self.__subjects = [x.strip() for x in value]
+
+    @property
+    def scores(self) -> List[float]:
+        return list(self.__scores)
+
+    @scores.setter
+    def scores(self, value: List[float]) -> None:
+        if not isinstance(value, list) or not all(isinstance(x, (int, float)) for x in value):
+            raise ValueError("scores must be a list of numbers")
+        self.__scores = [float(x) for x in value]
+
+    @abstractmethod
+    def average_score(self) -> float:
+        ...
 
 def main() -> None:
     # Will be implemented later
