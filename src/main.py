@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import xml.etree.ElementTree as ET
 from abc import ABC, abstractmethod
 from pathlib import Path
 from statistics import mean
@@ -198,6 +199,46 @@ class JsonSaver(DataSaver):
         return path
 
 
+class XmlSaver(DataSaver):
+    def save(self, data: Dict[str, Any], student: Student, work_code: str) -> Path:
+        out_path = self.build_filename(student, work_code, "xml")
+
+        root_el = ET.Element("student_data")
+
+        # student
+        student_el = ET.SubElement(root_el, "student")
+        for key in ("full_name", "group_number", "birth_date", "address"):
+            field_el = ET.SubElement(student_el, key)
+            field_el.text = str(data.get("student", {}).get(key, ""))
+
+        # actual_performance
+        act_perf_el = ET.SubElement(root_el, "actual_performance")
+        subjects_el = ET.SubElement(act_perf_el, "subjects")
+        for subject in data.get("actual_performance", {}).get("subjects", []):
+            ET.SubElement(subjects_el, "subject").text = str(subject)
+
+        scores_el = ET.SubElement(act_perf_el, "scores")
+        for score in data.get("actual_performance", {}).get("scores", []):
+            ET.SubElement(scores_el, "score").text = str(score)
+
+        ET.SubElement(act_perf_el, "average_score").text = str(
+            data.get("actual_performance", {}).get("average_score", 0)
+        )
+
+        # desired_performance
+        desired_perf_el = ET.SubElement(root_el, "desired_performance")
+        desired_scores_el = ET.SubElement(desired_perf_el, "desired_scores")
+        for score in data.get("desired_performance", {}).get("desired_scores", []):
+            ET.SubElement(desired_scores_el, "score").text = str(score)
+
+        ET.SubElement(desired_perf_el, "desired_average_score").text = str(
+            data.get("desired_performance", {}).get("desired_average_score", 0)
+        )
+
+        ET.ElementTree(root_el).write(out_path, encoding="utf-8", xml_declaration=True)
+        return out_path
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Save student data to JSON or XML.")
     parser.add_argument("--format", choices=["json", "xml"], default="json", help="output format")
@@ -221,6 +262,8 @@ def main() -> None:
     saver: DataSaver
     if args.format == "json":
         saver = JsonSaver()
+    else:
+        saver = XmlSaver()
 
     output = saver.save(data, student, args.work_code)
     print(f"Saved to {output.resolve()}")
