@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from statistics import mean
-from typing import List
+from typing import List, Optional
 
 
 class Student:
@@ -105,6 +105,36 @@ class ActualPerformance(Performance):
 
     def average_score(self) -> float:
         return float(mean(self.scores)) if self.scores else 0.0
+
+
+class DesiredPerformance(Performance):
+    def __init__(self, subjects: List[str], desired_scores: List[float], target_average: Optional[float] = None) -> None:
+        super().__init__(subjects, desired_scores)
+        self.target_average = target_average
+
+    @property
+    def desired_scores(self) -> List[float]:
+        return self.scores
+
+    @property
+    def target_average(self) -> Optional[float]:
+        return self.__target_average
+
+    @target_average.setter
+    def target_average(self, value: Optional[float]) -> None:
+        if value is None:
+            self.__target_average = None
+            return
+        if not isinstance(value, (int, float)):
+            raise ValueError("target_average must be a number or None")
+        if value < 0 or value > 100:
+            raise ValueError("target_average must be in range 0..100")
+        self.__target_average = float(value)
+
+    def average_score(self) -> float:
+        if self.__target_average is not None:
+            return float(self.__target_average)
+        return float(mean(self.desired_scores)) if self.desired_scores else 0.0
 
 
 def main() -> None:
