@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from statistics import mean
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 
 class Student:
@@ -135,6 +135,44 @@ class DesiredPerformance(Performance):
         if self.__target_average is not None:
             return float(self.__target_average)
         return float(mean(self.desired_scores)) if self.desired_scores else 0.0
+
+
+class StudentData:
+    def __init__(self, student: Student, actual: ActualPerformance, desired: DesiredPerformance) -> None:
+        self.__student = student
+        self.__actual = actual
+        self.__desired = desired
+
+    @property
+    def student(self) -> Student:
+        return self.__student
+
+    @property
+    def actual(self) -> ActualPerformance:
+        return self.__actual
+
+    @property
+    def desired(self) -> DesiredPerformance:
+        return self.__desired
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "student": {
+                "full_name": self.student.full_name,
+                "group_number": self.student.group_number,
+                "birth_date": self.student.birth_date,
+                "address": self.student.address,
+            },
+            "actual_performance": {
+                "subjects": self.actual.subjects,
+                "scores": self.actual.scores,
+                "average_score": round(self.actual.average_score(), 2),
+            },
+            "desired_performance": {
+                "desired_scores": self.desired.desired_scores,
+                "desired_average_score": round(self.desired.average_score(), 2),
+            },
+        }
 
 
 def main() -> None:
