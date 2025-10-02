@@ -199,8 +199,31 @@ class JsonSaver(DataSaver):
 
 
 def main() -> None:
-    # Will be implemented later
-    pass
+    parser = argparse.ArgumentParser(description="Save student data to JSON or XML.")
+    parser.add_argument("--format", choices=["json", "xml"], default="json", help="output format")
+    parser.add_argument("--work-code", default="PR5", help="work code used in filename, e.g., PR5")
+    args = parser.parse_args()
+
+    # Sample data
+    student = Student(full_name="IvanPetrenko", group_number="IPD11", birth_date="2004-05-01", address="Kyiv")
+    actual = ActualPerformance(
+        subjects=["Math", "Physics", "Programming"],
+        scores=[78, 90, 88],
+    )
+    desired = DesiredPerformance(
+        subjects=["Math", "Physics", "Programming"],
+        desired_scores=[90, 95, 92],
+        target_average=93.0,  # student desired average can be higher than real
+    )
+
+    data = StudentData(student, actual, desired).to_dict()
+
+    saver: DataSaver
+    if args.format == "json":
+        saver = JsonSaver()
+
+    output = saver.save(data, student, args.work_code)
+    print(f"Saved to {output.resolve()}")
 
 
 if __name__ == "__main__":
